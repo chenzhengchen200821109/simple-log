@@ -1,5 +1,5 @@
-#ifndef MUDUO_BASE_TYPES_H
-#define MUDUO_BASE_TYPES_H
+#ifndef TYPES_H
+#define TYPES_H
 
 #include <stdint.h>
 #include <string>
@@ -16,7 +16,7 @@ using std::string;
 template<typename To, typename From>
 inline To implicit_cast(From const &f)
 {
-  return f;
+    return f;
 }
 
 // When you upcast (that is, cast a pointer from type Foo to type
@@ -44,12 +44,11 @@ inline To down_cast(From* f)                     // so we only accept pointers
   // for compile-time type checking, and has no overhead in an
   // optimized build at run-time, as it will be optimized away
   // completely.
-  if (false)
-  {
-    implicit_cast<From*, To>(0);
-  }
+    if (false) {
+        implicit_cast<From*, To>(0);
+    }
 
-  return static_cast<To>(f);
+    return static_cast<To>(f);
 }
 
 } // namespace muduo
