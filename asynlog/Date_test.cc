@@ -8,21 +8,25 @@ const int kMonthsOfYear = 12;
 
 int isLeapYear(int year)
 {
-    if (year % 400 == 0)
-        return 1;
-    else if (year % 100 == 0)
-        return 0;
-    else if (year % 4 == 0)
-        return 1;
+    //if (year % 400 == 0)
+    //    return 1; 
+    //else if (year % 100 == 0)
+    //    return 0;
+    //else if (year % 4 == 0)
+    //    return 1;
+    //else
+    //    return 0;
+    if ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0))
+        return 1; // true, leap year
     else
-        return 0;
+        return 0; // false, common year
 }
 
 int daysOfMonth(int year, int month)
 {
     static int days[2][kMonthsOfYear+1] = {
-        { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 },
-        { 0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 },
+        { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 }, // common year
+        { 0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 }, // leap year
     };
     return days[isLeapYear(year)][month];
 }
@@ -39,8 +43,12 @@ void passByValue(Date x)
 
 int main()
 {
-    time_t now = time(NULL);
+    time_t now = time(NULL); // current date
+    // gmtime() function converts the calendar time to broken-down time
+    // representation, expressed in Coordinated Universal Time (UTC).
     struct tm t1 = *gmtime(&now);
+    // localtime() function converts the calendar time to broken-down time
+    // representation, expressed relative to the user's specified timezone.
     struct tm t2 = *localtime(&now);
     Date someDay(2008, 9, 10);
     printf("%s\n", someDay.toIsoString().c_str());
