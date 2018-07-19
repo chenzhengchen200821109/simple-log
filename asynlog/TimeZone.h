@@ -37,7 +37,7 @@ namespace muduo
             struct Data;
 
         private:
-            shared_ptr<Data> data_;
+            std::shared_ptr<Data> data_;
     };
 
 } // muduo

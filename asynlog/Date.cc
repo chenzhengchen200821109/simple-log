@@ -11,7 +11,6 @@ namespace detail
     // algorithm and explanation see:
     // http://www.faqs.org/faqs/calendars/faq/part2/
     // http://blog.csdn.net/Solstice
-
     int getJulianDayNumber(int year, int month, int day)
     {
         (void) require_32_bit_integer_at_least; // no warning please
