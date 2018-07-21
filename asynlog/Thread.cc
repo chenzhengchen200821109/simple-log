@@ -1,14 +1,11 @@
 #include "Thread.h"
-#include "CurrentThread.h"
 //#include "Exception.h"
 //#include "Logging.h"
-
 #include <type_traits>
 #include <memory>
 #include <errno.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <sys/prctl.h>
 #include <sys/syscall.h>
 #include <sys/types.h>
 #include <stdlib.h>
@@ -17,7 +14,6 @@
 
 namespace muduo
 {
-
     const bool sameType = std::is_same<int, pid_t>::value;
     static_assert(sameType, "int and pid_t are not the same type");
 
@@ -38,8 +34,8 @@ namespace detail
         ts.tv_nsec = static_cast<long>(usec % Timestamp::kMicroSecondsPerSecond * 1000);
         ::nanosleep(&ts, NULL);
     }
-
-    // ???????????
+    
+    //???????????
     //void afterFork()
     //{
         //muduo::CurrentThread::t_cachedTid = 0;

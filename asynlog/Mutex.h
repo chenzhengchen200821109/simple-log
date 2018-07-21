@@ -1,10 +1,11 @@
 #ifndef MUTEX_H
 #define MUTEX_H
 
-#include "CurrentThread.h"
 #include "NonCopyable.h"
 #include <assert.h>
 #include <pthread.h>
+#include <unistd.h>
+#include <sys/syscall.h>
 
 #ifdef CHECK_PTHREAD_RETURN_VALUE
 
@@ -50,7 +51,8 @@ namespace muduo
             // must be called when locked, i.e. for assertion
             bool isLockedByThisThread() const
             {
-                return holder_ == CurrentThread::tid();
+                //return holder_ == CurrentThread::tid();
+                return holder_ == static_cast<pid_t>(::syscall(SYS_gettid));
             }
 
             void assertLocked() const
@@ -104,7 +106,8 @@ namespace muduo
 
             void assignHolder()
             {
-                holder_ = CurrentThread::tid();
+                //holder_ = CurrentThread::tid();
+                holder_ = static_cast<pid_t>(::syscall(SYS_gettid));
             }
 
             pthread_mutex_t mutex_;

@@ -4,7 +4,6 @@
 #include <atomic>
 #include "CountDownLatch.h"
 #include "Types.h"
-
 #include <functional>
 #include "NonCopyable.h"
 #include <memory>
@@ -54,7 +53,6 @@ class Thread : public noncopyable
         ThreadFunc func_;
         string name_;
         CountDownLatch latch_;
-        //static AtomicInt32 numCreated_;
         static std::atomic<int> numCreated_;
 };
 
