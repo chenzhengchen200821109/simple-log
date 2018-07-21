@@ -6,7 +6,7 @@ using namespace muduo;
 
 void threadFunc(int i, CountDownLatch* platch)
 {
-    platch->countDown();
+    //platch->countDown();
     std::cout << "Thread: " << i << " finished!" << std::endl;
 }
 
@@ -18,6 +18,7 @@ int main()
     
     for (int i = 0; i < 10; i++) {
         std::thread t(threadFunc, i, platch);
+        t.detach();
     }
 
     platch->wait(); // main thread waits for all work thread done
