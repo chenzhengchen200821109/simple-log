@@ -6,7 +6,7 @@
 #include "NonCopyable.h"
 #include <assert.h>
 #include <deque>
-//#include <iostream>
+//#include <stdio.h>
 
 namespace muduo
 {
@@ -15,7 +15,7 @@ namespace muduo
     class BoundedBlockingQueue : public noncopyable
     {
         public:
-        explicit BoundedBlockingQueue(int maxSize) : mutex_(), notEmpty_(mutex_), notFull_(mutex_), queue_(maxSize), maxSize_(maxSize)
+        explicit BoundedBlockingQueue(int maxSize) : mutex_(), notEmpty_(mutex_), notFull_(mutex_), queue_(0), maxSize_(maxSize)
         {
 
         }
@@ -28,7 +28,7 @@ namespace muduo
             }
             assert(queue_.size() <= maxSize_);
             queue_.push_back(x);
-            //std::cout << "put" << std::endl;
+            //printf("put a value\n");
             notEmpty_.notify();
         }
 
@@ -39,11 +39,36 @@ namespace muduo
                 notEmpty_.wait();
             }
             assert(!queue_.empty());
+            /* calling front() on an empty container causes undefined behavior */
             T front(queue_.front());
             queue_.pop_front();
-            //std::cout << "take" << std::endl;
+            //printf("take a value\n");
             notFull_.notify();
             return front;
+        }
+
+        //?????????????????????????
+        T takeWithinSeconds(double sec)
+        {
+            MutexLockGuard lock(mutex_);
+            while (queue_.empty()) {
+                notEmpty_.waitForSeconds(sec);
+            }
+            /* 
+             * the following happens because no more data put into queue and we 
+             * don't want to wait.
+             */
+            if (queue_.size() == 0) { 
+                T t;
+                notFull_.notifyAll();
+                return t;
+            }
+            else {
+                T front(queue_.front());
+                queue_.pop_front();
+                notFull_.notify();
+                return front;
+            }
         }
 
         bool empty() const

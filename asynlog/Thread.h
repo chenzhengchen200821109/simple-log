@@ -52,7 +52,7 @@ class Thread : public noncopyable
         pid_t tid_;
         ThreadFunc func_;
         string name_;
-        CountDownLatch latch_;
+        CountDownLatch latch_; // always assure working thread run first
         static std::atomic<int> numCreated_;
 };
 

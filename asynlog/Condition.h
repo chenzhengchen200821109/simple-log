@@ -25,12 +25,12 @@ class Condition : public noncopyable
 
   void wait()
   {
-    MutexLock::UnassignGuard ug(mutex_);
+    //MutexLock::UnassignGuard ug(mutex_);
     MCHECK(pthread_cond_wait(&pcond_, mutex_.getPthreadMutex()));
   }
 
   // returns true if time out, false otherwise.
-  bool waitForSeconds(double seconds);
+  bool timeWait(double seconds);
 
   void notify()
   {

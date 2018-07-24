@@ -1,120 +1,121 @@
-#include "ThreadPool.h"
-#include "Exception.h"
+#include "MyThreadPool.h"
 #include <assert.h>
+#include <stdio.h>
+#include <algorithm>
+#include <functional>
 #include <stdio.h>
 
 using namespace muduo;
+using namespace std::placeholders;
 
-ThreadPool::ThreadPool(const string& nameArg) : mutex_(), notEmpty_(mutex_), notFull_(mutex_), name_(nameArg), maxQueueSize_(0), running_(false)
+ThreadPool::ThreadPool(const string& nameArg, int threads, int size) : name_(nameArg), queue_(0), threads_(threads), size_(size), mutex_(), notEmpty_(mutex_), notFull_(mutex_) ,notFinish_(mutex_), running_(false)
 {
-
+    //start();
 }
 
 ThreadPool::~ThreadPool()
 {
-    if (running_) {
+    if (running_)
         stop();
-    }
 }
 
-void ThreadPool::start(int numThreads)
+void ThreadPool::start()
 {
-    assert(threads_.empty()); // thread pool is empty 
     running_ = true;
-    threads_.reserve(numThreads);
-    for (int i = 0; i < numThreads; ++i) {
+    vector_.reserve(threads_);
+    for(int i = 0; i < threads_; ++i) {
         char id[32];
         snprintf(id, sizeof id, "%d", i+1);
         std::shared_ptr<muduo::Thread> elem(new muduo::Thread(std::bind(&ThreadPool::runInThread, this), name_ + id));
-        threads_.push_back(elem);
-        threads_[i].start();
+        vector_.push_back(elem);
+        vector_[i]->start();
     }
-    if (numThreads == 0 && threadInitCallback_) {
+    if (threadInitCallback_) {
         threadInitCallback_();
     }
 }
 
 void ThreadPool::stop()
 {
+
+    running_ = false;
     {
         MutexLockGuard lock(mutex_);
-        running_ = false;
-        // shall unlock all threads currently blocked on the specified condition vavriable
-        notEmpty_.notifyAll();
+        while (threads_ > 0) {
+            notFinish_.wait();
+            printf("wait for a thread\n");
+        }
     }
-    for_each(threads_.begin(), threads_.end(), std::bind(&muduo::Thread::join, _1));
+    std::for_each(vector_.begin(), vector_.end(), std::bind(&muduo::Thread::join, _1));
 }
 
-size_t ThreadPool::queueSize() const
+void ThreadPool::execute(const Task& task)
 {
     MutexLockGuard lock(mutex_);
-    return queue_.size();
+    while (queue_.size() == size_) {
+        notFull_.wait();
+    }
+    queue_.push_back(task);
+    printf("put a value\n");
+    notEmpty_.notify();
 }
 
-// This is the only interface needed for users
-void ThreadPool::run(const Task& task)
-{
-    if (threads_.empty()) { // this means numThreads is set to zero
-        task();
-    }
-    else {
-        MutexLockGuard lock(mutex_);
-        while (isFull()) {
-            notFull_.wait(); // block
-        }
-        assert(!isFull());
-        queue_.push_back(task);
-        notEmpty_.notify();
-    }
-}
-
-// take out a task from the thread pool. If it is empty, block and wait. 
-// Otherwise take out a task and signal
 ThreadPool::Task ThreadPool::take()
 {
-    MutexLockGuard lock(mutex_);
-    // always use a while-loop, due to spurious wakeup
-    while (queue_.empty() && running_) {
+    while (queue_.empty()) {
         notEmpty_.wait();
     }
     Task task;
     if (!queue_.empty()) {
         task = queue_.front();
         queue_.pop_front();
-        if (maxQueueSize_ > 0) {
-            notFull_.notify();
-        }
+        notFull_.notify();
     }
     return task;
 }
 
-// thread pool (a queue) is full
-bool ThreadPool::isFull() const
+ThreadPool::Task ThreadPool::timeTake(double sec)
 {
-    //mutex_.assertLocked();
-    MutexLockGuard lock(mutex_);
-    return maxQueueSize_ > 0 && queue_.size() >= maxQueueSize_;
+    while (queue_.empty()) {
+        if (notEmpty_.timeWait(sec)) {
+            threads_--;
+            notFinish_.notify();
+            break;
+        }
+    }
+    Task task;
+    if (!queue_.empty()) {
+        task = queue_.front();
+        queue_.pop_front();
+        printf("take a task");
+        notFull_.notify();
+    }
+    return task;
 }
 
 void ThreadPool::runInThread()
 {
     try {
-        if (threadInitCallback_) {
-            threadInitCallback_();
-        }
-        while (running_) {
-            Task task(take());
+        while (1) {
+            mutex_.lock();
+            Task task;
+            task = timeTake(2);
             if (task) {
                 task();
             }
+            else {
+                mutex_.unlock();
+                break;
+            }
+            mutex_.unlock();
         }
     }
-    catch (const Exception& ex) {
-        fprintf(stderr, "exception caught in ThreadPool %s\n", name_.c_str());
-        fprintf(stderr, "reason: %s\n", ex.what());
-        fprintf(stderr, "stack trace: %s\n", ex.stackTrace());
-        abort();
-    }
+    //catch (const Exception& ex) {
+    //    fprintf(stderr, "exception caught in ThreadPool %s\n", name_.c_str());
+    //    fprintf(stderr, "reason: %s\n", ex.what());
+    //    fprintf(stderr, "stack trace: %s\n", ex.stackTrace());
+    //    abort();
+    //}
     catch (const std::exception& ex) {
         fprintf(stderr, "exception caught in ThreadPool %s\n", name_.c_str());
         fprintf(stderr, "reason: %s\n", ex.what());

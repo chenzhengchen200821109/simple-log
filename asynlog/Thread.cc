@@ -82,7 +82,7 @@ namespace detail
         void runInThread()
         {
             *tid_ = gettid();
-            tid_ == NULL;
+            tid_ = NULL;
             latch_->countDown();
             latch_ = NULL;
 
