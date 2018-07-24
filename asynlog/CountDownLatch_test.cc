@@ -1,13 +1,15 @@
 #include "CountDownLatch.h"
+#include "Thread.h"
 #include <iostream>
-#include <thread>
+#include <pthread.h>
 
 using namespace muduo;
 
-void threadFunc(int i, CountDownLatch* platch)
+void* threadFunc(void* data)
 {
-    //platch->countDown();
-    std::cout << "Thread: " << i << " finished!" << std::endl;
+    CountDownLatch* platch = (CountDownLatch*)data;
+    platch->countDown();
+    std::cout << "Worker thread" << std::endl;
 }
 
 //CountDownLatch latch(10);
@@ -15,14 +17,14 @@ void threadFunc(int i, CountDownLatch* platch)
 int main()
 {
     CountDownLatch* platch = new CountDownLatch(10); // 10 work threads plus one main thread
-    
+   pthread_t tid; 
     for (int i = 0; i < 10; i++) {
-        std::thread t(threadFunc, i, platch);
-        t.detach();
+        pthread_create(&tid, NULL, &threadFunc, (void*)platch);
     }
 
     platch->wait(); // main thread waits for all work thread done
 
+    std::cout << "Main thread" << std::endl;
     delete platch;
     return 0;
 }
