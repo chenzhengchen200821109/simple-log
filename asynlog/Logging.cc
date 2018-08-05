@@ -1,33 +1,14 @@
 #include "Logging.h"
-
 #include "CurrentThread.h"
 #include "Timestamp.h"
 #include "TimeZone.h"
-
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
-
 #include <sstream>
 
 namespace muduo
 {
-
-/*
-class LoggerImpl
-{
- public:
-  typedef Logger::LogLevel LogLevel;
-  LoggerImpl(LogLevel level, int old_errno, const char* file, int line);
-  void finish();
-  Timestamp time_;
-  LogStream stream_;
-  LogLevel level_;
-  int line_;
-  const char* fullname_;
-  const char* basename_;
-};
-*/
 
 __thread char t_errnobuf[512];
 __thread char t_time[64];
@@ -38,6 +19,7 @@ const char* strerror_tl(int savedErrno)
     return strerror_r(savedErrno, t_errnobuf, sizeof t_errnobuf);
 }
 
+// environtment variables
 Logger::LogLevel initLogLevel()
 {
     if (::getenv("MUDUO_LOG_TRACE"))
@@ -169,6 +151,7 @@ Logger::Logger(SourceFile file, int line, LogLevel level) : impl_(level, 0, file
 
 }
 
+// flush or not when log level is higher than INFO
 Logger::Logger(SourceFile file, int line, bool toAbort) : impl_(toAbort ? FATAL : ERROR, errno, file, line)
 {
 
@@ -179,7 +162,7 @@ Logger::~Logger()
     impl_.finish();
     const LogStream::Buffer& buf(stream().buffer());
     g_output(buf.data(), buf.length());
-    if (impl_.level_ == FATAL) {
+    if (impl_.level_ == FATAL) { // log level is FATAL and flush
         g_flush();
         abort();
     }

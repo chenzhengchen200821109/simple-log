@@ -52,6 +52,6 @@ namespace muduo
             std::deque<T>     queue_;
     };
 
-}
+} // namespace muduo
 
-#endif  BLOCKINGQUEUE_H
+#endif  //BLOCKINGQUEUE_H

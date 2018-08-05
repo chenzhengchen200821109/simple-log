@@ -1,5 +1,4 @@
 #include "LogFile.h"
-
 #include "FileUtil.h"
 #include "ProcessInfo.h"
 
@@ -10,11 +9,11 @@
 using namespace muduo;
 
 LogFile::LogFile(const string& basename, off_t rollSize, bool threadSafe, int flushInterval, int checkEveryN) 
-    : basename_(basename), rollSize_(rollSize) flushInterval_(flushInterval), checkEveryN_(checkEveryN), count_(0), mutex_(threadSafe ? new MutexLock : NULL),
+    : basename_(basename), rollSize_(rollSize), flushInterval_(flushInterval), checkEveryN_(checkEveryN), count_(0), mutex_(threadSafe ? new MutexLock : NULL),
         startOfPeriod_(0), lastRoll_(0), lastFlush_(0)
 {
     assert(basename.find('/') == string::npos);
-    rollFile();
+    rollFile(); // initialize
 }
 
 LogFile::~LogFile()
@@ -53,14 +52,14 @@ void LogFile::append_unlocked(const char* logline, int len)
     }
     else {
         ++count_;
-        if (count_ >= checkEveryN_) {
+        if (count_ >= checkEveryN_) { // only check every specified counter
             count_ = 0;
             time_t now = ::time(NULL);
             time_t thisPeriod_ = now / kRollPerSeconds_ * kRollPerSeconds_;
             if (thisPeriod_ != startOfPeriod_) {
                 rollFile();
             }
-            else if (now - lastFlush_ > flushInterval_) {
+            else if (now - lastFlush_ > flushInterval_) { // time to flush
                 lastFlush_ = now;
                 file_->flush();
             }
@@ -86,6 +85,10 @@ bool LogFile::rollFile()
 
 string LogFile::getLogFileName(const string& basename, time_t* now)
 {
+    /*
+     * time_t represents clendar time. When interpreted as an absolute time vale
+     * it represents the number of seconds elapsed since the Epoch, 1970-01-01 00:00:00 +0000(UTC)
+     */
     string filename;
     filename.reserve(basename.size() + 64);
     filename = basename;
@@ -93,7 +96,7 @@ string LogFile::getLogFileName(const string& basename, time_t* now)
     char timebuf[32];
     struct tm tm;
     *now = time(NULL);
-    gmtime_r(now, &tm); // FIXME: localtime_r ?
+    gmtime_r(now, &tm);
     strftime(timebuf, sizeof timebuf, ".%Y%m%d-%H%M%S.", &tm);
     filename += timebuf;
 

@@ -47,28 +47,23 @@ namespace muduo
             return front;
         }
 
-        //?????????????????????????
-        T takeWithinSeconds(double sec)
+        T timeTake(double sec)
         {
             MutexLockGuard lock(mutex_);
             while (queue_.empty()) {
-                notEmpty_.waitForSeconds(sec);
+                notEmpty_.timeWait(sec);
             }
             /* 
              * the following happens because no more data put into queue and we 
              * don't want to wait.
              */
-            if (queue_.size() == 0) { 
-                T t;
-                notFull_.notifyAll();
-                return t;
-            }
-            else {
-                T front(queue_.front());
+            T t;
+            if (!queue_.empty()) {
+                t = queue_.front();
                 queue_.pop_front();
                 notFull_.notify();
-                return front;
             }
+            return t;
         }
 
         bool empty() const

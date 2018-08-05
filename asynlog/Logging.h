@@ -63,6 +63,7 @@ namespace muduo
 
             typedef void (*OutputFunc)(const char* msg, int len);
             typedef void (*FlushFunc)();
+            // static member function
             static void setOutput(OutputFunc);
             static void setFlush(FlushFunc);
             static void setTimeZone(const TimeZone& tz);
@@ -88,7 +89,7 @@ namespace muduo
 
     };
 
-extern Logger::LogLevel g_logLevel;
+extern Logger::LogLevel g_logLevel; // logging.cc
 
 inline Logger::LogLevel Logger::logLevel()
 {

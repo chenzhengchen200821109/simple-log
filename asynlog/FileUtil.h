@@ -10,6 +10,8 @@ namespace muduo
 
 namespace FileUtil
 {
+    // class ReadSmallFile deal with reading from a file.
+    // class AppendFile deal with writing to a file.
 
 	// read small file < 64KB
 	class ReadSmallFile : public noncopyable
@@ -46,14 +48,15 @@ namespace FileUtil
 	}
 
 	// not thread safe
+    // File I/O handle
 	class AppendFile : public noncopyable
 	{
  		public:
   			explicit AppendFile(StringArg filename);
 			~AppendFile();
 
+            // public interface for clients. we get data from logline and write to a file.
   			void append(const char* logline, const size_t len);
-
   			void flush();
 
   			off_t writtenBytes() const { return writtenBytes_; }
@@ -67,6 +70,7 @@ namespace FileUtil
 	};
 
 } // namespace FileUtil
+
 } // namespace muduo
 
 #endif  // FILEUTIL_H

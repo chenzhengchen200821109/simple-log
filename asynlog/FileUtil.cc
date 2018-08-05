@@ -10,10 +10,10 @@
 
 using namespace muduo;
 
-FileUtil::AppendFile::AppendFile(StringArg filename) : fp_(::fopen(filename.c_str(), "ae")), writtenBytes_(0) // (open with O_CLOEXEC flag) for mode
+FileUtil::AppendFile::AppendFile(StringArg filename) : fp_(::fopen(filename.c_str(), "ae")), writtenBytes_(0)
 {
     assert(fp_);
-    ::setbuffer(fp_, buffer_, sizeof buffer_);
+    ::setbuffer(fp_, buffer_, sizeof buffer_); // set up buffer for a file stream
 }
 
 FileUtil::AppendFile::~AppendFile()
@@ -45,9 +45,13 @@ void FileUtil::AppendFile::flush()
     ::fflush(fp_); // flush a stream
 }
 
+// write is a private member function
 size_t FileUtil::AppendFile::write(const char* logline, size_t len)
 {
-    // #undef fwrite_unlocked
+    /*
+     * The stdio functions are thread-safe. This is achieved by assigning to each
+     * FILE object a lockcount and (if the lockcount is nonzero) and owning thread.
+     */
     return ::fwrite_unlocked(logline, 1, len, fp_); // fwrite_unlocked() is similar to fwrite()
   												  // except it is not thread-safe
 }

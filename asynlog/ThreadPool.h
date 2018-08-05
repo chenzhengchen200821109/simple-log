@@ -55,7 +55,7 @@ class ThreadPool : public noncopyable
 
         int size_;
         std::deque<Task> queue_;
-        int running_;
+        bool running_;
 };
 
 } // namespace muduo

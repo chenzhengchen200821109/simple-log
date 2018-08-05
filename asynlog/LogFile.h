@@ -1,6 +1,7 @@
 #ifndef LOGFILE_H
 #define LOGFILE_H
 
+#include "FileUtil.h"
 #include "Mutex.h"
 #include "Types.h"
 
@@ -8,17 +9,14 @@
 
 namespace muduo
 {
-
-namespace FileUtil
-{
-    class AppendFile;
-}
-
+    // class LogFile -- write data to a log file
+    // construct a named log file 
     class LogFile : public noncopyable
     {
         public:
             LogFile(const string& basename, off_t rollSize, bool threadSafe = true, int flushInterval = 3, int checkEveryN = 1024);
             ~LogFile();
+            // append() maybe is the only interface needed for clients
             void append(const char* logline, int len);
             void flush();
             bool rollFile();
@@ -36,9 +34,9 @@ namespace FileUtil
             time_t startOfPeriod_;
             time_t lastRoll_;
             time_t lastFlush_;
-            std::unique_ptr<FileUtil::AppendFile> file_;
+            std::unique_ptr<FileUtil::AppendFile> file_; // make sure AppendFile only has one owner
 
-            const static int kRollPerSeconds_ = 60*60*24;
+            const static int kRollPerSeconds_ = 60*60*24; // roll each day
     };
 
 } // namespace muduo
