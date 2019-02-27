@@ -4,19 +4,17 @@
 #include <string>
 
 enum LogLevel {
-  LOGLEVEL_INFO,     // Informational.  This is never actually used by
-                     // libprotobuf.
-  LOGLEVEL_WARNING,  // Warns about issues that, although not technically a
-                     // problem now, could cause problems in the future.  For
-                     // example, a warning will be printed when parsing a
-                     // message that is near the message size limit.
-  LOGLEVEL_ERROR,    // An error occurred which should never happen during
-                     // normal use.
-  LOGLEVEL_FATAL,    // An error occurred from which the library cannot
-                     // recover.  This usually indicates a programming error
-                     // in the code which calls the library, especially when
-                     // compiled in debug mode.
-  LOGLEVEL_DFATAL = LOGLEVEL_FATAL
+  LOGLEVEL_INFO = 0,     // Informational.  This is never actually used by libprotobuf.
+  LOGLEVEL_WARNING,      // Warns about issues that, although not technically a
+                         // problem now, could cause problems in the future.  For
+                         // example, a warning will be printed when parsing a
+                         // message that is near the message size limit.
+  LOGLEVEL_ERROR,        // An error occurred which should never happen during
+                         // normal use.
+  LOGLEVEL_FATAL,        // An error occurred from which the library cannot
+                         // recover.  This usually indicates a programming error
+                         // in the code which calls the library, especially when
+                         // compiled in debug mode.
 };
 
 //class StringPiece;

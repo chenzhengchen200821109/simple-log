@@ -3,20 +3,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
-// If the minimum logging level is not set, we default to logging messages for
-// all levels.
-#ifndef MIN_LOG_LEVEL
 #define MIN_LOG_LEVEL LOGLEVEL_INFO
-#endif
+#define MAX_LOG_LEVEL LOGLEVEL_FATAL
 
 namespace internal 
 {
 
     void DefaultLogHandler(LogLevel level, const char* filename, int line, const string& message) 
     {
-        if (level < MIN_LOG_LEVEL) {
-            return;
+        if (level < MIN_LOG_LEVEL || level > MAX_LOG_LEVEL) {
+            fprintf(stderr, "[slog only suport 4 levels: INFO WARNING ERROR FATAL\n");
+            exit(-1);
         }
         static const char* level_names[] = { "INFO", "WARNING", "ERROR", "FATAL" };
 
@@ -24,9 +21,12 @@ namespace internal
         // initialization time.
         fprintf(stderr, "[slog: %s: %s: %d] %s\n", level_names[level], filename, line, message.c_str());
         fflush(stderr);  // just in case
+        // terminate program when occurred errors or fatals
+        if (level == LOGLEVEL_ERROR || level == LOGLEVEL_FATAL)
+            exit(-1);
     }
 
-    void NullLogHandler(LogLevel /* level */, const char* /* filename */, int /* line */, const string& /* message */) 
+    void NullLogHandler(LogLevel level, const char* filename, int line, const string& message) 
     {
         // Nothing.
     }

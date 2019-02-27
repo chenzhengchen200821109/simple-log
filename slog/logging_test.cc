@@ -1,6 +1,7 @@
 #include "logging.h"
 #include "stringpiece.h"
 #include <string>
+#include <stdio.h>
 
 int main()
 {
@@ -9,6 +10,9 @@ int main()
 
     SLOG(INFO) << msg;
     SLOG(INFO) << sp;
+    SLOG(INFO) << "hello again";
+    SLOG(ERROR) << "After this should not happen";
 
+    printf("should never print\n");
     return 0;
 }
