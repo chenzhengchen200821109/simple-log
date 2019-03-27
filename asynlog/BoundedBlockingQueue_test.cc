@@ -6,13 +6,13 @@ using namespace muduo;
 void* producer(void* arg) 
 {
     static_cast<BoundedBlockingQueue<int> *>(arg)->put(10);
-    //std::cout << "put..." << std::endl;
+    std::cout << "put..." << std::endl;
 }
 
 void* consumer(void* arg)
 {
     static_cast<BoundedBlockingQueue<int> *>(arg)->take();
-    //std::cout << "take..." << std::endl;
+    std::cout << "take..." << std::endl;
 }
 
 int main()

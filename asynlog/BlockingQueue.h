@@ -3,7 +3,6 @@
 
 #include "Condition.h"
 #include "Mutex.h"
-
 #include "NonCopyable.h"
 #include <deque>
 #include <assert.h>
@@ -19,14 +18,14 @@ namespace muduo
             {
 
             }
-
+            // producer
             void put(const T& x)
             {
                 MutexLockGuard lock(mutex_);
                 queue_.push_back(x);
                 notEmpty_.notify();
             }
-
+            // consumer
             T take()
             {
                 MutexLockGuard lock(mutex_);

@@ -19,7 +19,7 @@ namespace muduo
         {
 
         }
-
+        // producer
         void put(const T& x)
         {
             MutexLockGuard lock(mutex_);
@@ -31,7 +31,7 @@ namespace muduo
             //printf("put a value\n");
             notEmpty_.notify();
         }
-
+        // consumer
         T take()
         {
             MutexLockGuard lock(mutex_);
@@ -98,6 +98,6 @@ namespace muduo
         std::deque<T>  queue_;
     };
 
-}
+} // namespace muduo
 
 #endif  // BOUNDEDBLOCKINGQUEUE_H

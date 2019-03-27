@@ -1,6 +1,7 @@
 #include "Thread.h"
-//#include "Exception.h"
+#include "Exception.h"
 //#include "Logging.h"
+#include "CurrentThread.h"
 #include <type_traits>
 #include <memory>
 #include <errno.h>
@@ -26,7 +27,7 @@ namespace detail
         return static_cast<pid_t>(::syscall(SYS_gettid));
     }
 
-    // sleep
+    // sleep a while 
     void sleepUsec(int64_t usec)
     {
         struct timespec ts = { 0, 0 };
@@ -35,35 +36,6 @@ namespace detail
         ::nanosleep(&ts, NULL);
     }
     
-    //???????????
-    //void afterFork()
-    //{
-        //muduo::CurrentThread::t_cachedTid = 0;
-        //muduo::CurrentThread::t_threadName = "main";
-        //CurrentThread::tid();
-        // no need to call pthread_atfork(NULL, NULL, &afterFork);
-        //muduo::CurrentThread::tid_ = 0;
-        //muduo::CurrentThread::threadName_ = "main";
-        //muduo::CurrentThread::tid();
-    //}
-
-    //class ThreadNameInitializer
-    //{
-    //    public:
-    //        ThreadNameInitializer()
-    //        {
-                //muduo::CurrentThread::t_threadName = "main";
-                //CurrentThread::tid();
-                //muduo::CurrentThread::threadName_ = "main";
-                //muduo::CurrentThread::tid();
-                // the pthread_atfork() function shall declare fork handlers to be called
-                // before and after fork(), in the context of the thread that called fork().
-     //           pthread_atfork(NULL, NULL, &afterFork);
-     //       }
-    //};
-
-    //ThreadNameInitializer init;
-
     struct ThreadData
     {
         typedef muduo::Thread::ThreadFunc ThreadFunc;
@@ -89,13 +61,13 @@ namespace detail
             try {
                 func_(); // starts a new thread in the calling process.
             }
-            //catch (const Exception& ex) {
-            //    muduo::CurrentThread::t_threadName = "crashed";
-            //    fprintf(stderr, "exception caught in Thread %s\n", name_.c_str());
-            //    fprintf(stderr, "reason: %s\n", ex.what());
-            //    fprintf(stderr, "stack trace: %s\n", ex.stackTrace());
-            //    abort();
-            //}
+            catch (const Exception& ex) {
+                muduo::CurrentThread::t_threadName_ = "crashed";
+                fprintf(stderr, "exception caught in Thread %s\n", name_.c_str());
+                fprintf(stderr, "reason: %s\n", ex.what());
+                fprintf(stderr, "stack trace: %s\n", ex.stackTrace());
+                abort();
+            }
             catch (const std::exception& ex) {
                 fprintf(stderr, "exception caught in Thread %s\n", name_.c_str());
                 fprintf(stderr, "reason: %s\n", ex.what());
@@ -146,17 +118,20 @@ void Thread::setDefaultName()
     }
 }
 
+// make threads ready to run and countdown
 void Thread::start()
 {
     assert(!started_);
     started_ = true;
     detail::ThreadData* data = new detail::ThreadData(func_, name_, &tid_, &latch_);
+    /*
+     * On success, pthread_create() returns 0; On error, it returns an error number.
+     */
     if (pthread_create(&pthreadId_, NULL, &detail::startThread, data)) {
         started_ = false;
-        delete data; // or no delete?
+        delete data;
         //LOG_SYSFATAL << "Failed in pthread_create";
-    } 
-    else {
+    } else {
         latch_.wait();
         assert(tid_ > 0);
     }

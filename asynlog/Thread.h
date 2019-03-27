@@ -25,11 +25,10 @@ class Thread : public noncopyable
 
         explicit Thread(const ThreadFunc&, const string& name = string());
         ~Thread();
-
         void start();
         int join(); // return pthread_join()
         bool started() const { return started_; }
-        // pthread_t pthreadId() const { return pthreadId_; }
+        pthread_t pthreadId() const { return pthreadId_; }
         pid_t tid() const { return tid_; }
         string tidToString() 
         {

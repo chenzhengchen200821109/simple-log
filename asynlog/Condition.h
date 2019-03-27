@@ -2,7 +2,6 @@
 #define CONDITION_H
 
 #include "Mutex.h"
-
 #include "NonCopyable.h"
 #include <pthread.h>
 
@@ -24,7 +23,6 @@ namespace muduo
 
             void wait()
             {
-                //MutexLock::UnassignGuard ug(mutex_);
                 MCHECK(pthread_cond_wait(&pcond_, mutex_.getPthreadMutex()));
             }
 
@@ -44,7 +42,7 @@ namespace muduo
     private:
         MutexLock& mutex_;
         pthread_cond_t pcond_;
-}; // class Condition
+}; 
 
-}
+} // namespace muduo
 #endif  // CONDITION_H
