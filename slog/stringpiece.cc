@@ -132,6 +132,7 @@ namespace internal
             return npos;
         }
         // Avoid the cost of BuildLookupTable() for a single-character search.
+        // invoke size_t find_first_of(char c, size_type pos = 0) const.
         if (s.length_ == 1) return find_first_of(s.ptr_[0], pos);
 
         bool lookup[UCHAR_MAX + 1] = { false };

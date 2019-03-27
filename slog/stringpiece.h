@@ -18,7 +18,6 @@ namespace internal
         private:
             const char* ptr_;
             size_t length_;
-
             static void LogFatalSizeTooBig(size_t size, const char* details)
             {
                 SLOG(FATAL) << "size too big: " << size << " details: " << details;
@@ -33,10 +32,8 @@ namespace internal
                 }
                 return (size);
             }
-
             // Out-of-line error path.
             //static void LogFatalSizeTooBig(size_t size, const char* details);
-
         public:
             // We provide non-explicit singleton constructors so users can pass
             // in a "const char*" or a "string" wherever a "StringPiece" is
@@ -49,7 +46,7 @@ namespace internal
                     length_ = CheckedSsizeTFromSizeT(strlen(str));
                 }
             }
-
+            // swallow copy 
             StringPiece(const std::string& str) : ptr_(str.data()), length_(0) {
                 length_ = CheckedSsizeTFromSizeT(str.size());
             }
@@ -57,7 +54,6 @@ namespace internal
             StringPiece(const char* offset, size_t len) : ptr_(offset), length_(len) {
                 assert(len >= 0);
             }
-
             // Substring of another StringPiece.
             // pos must be non-negative and <= x.length().
             StringPiece(StringPiece x, size_t pos);
@@ -65,7 +61,6 @@ namespace internal
             // pos must be non-negative and <= x.length().
             // len must be non-negative and will be pinned to at most x.length() - pos.
             StringPiece(StringPiece x, size_t pos, size_t len);
-
             // data() may return a pointer to a buffer with embedded NULLs, and the
             // returned buffer may or may not be null terminated.  Therefore it is
             // typically a mistake to pass data() to a routine that expects a NUL
@@ -74,20 +69,17 @@ namespace internal
             size_t size() const { return length_; }
             size_t length() const { return length_; }
             bool empty() const { return length_ == 0; }
-
             void clear() 
             {
                 ptr_ = NULL;
                 length_ = 0;
             }
-
             void set(const char* data, size_t len) 
             {
                 assert(len >= 0);
                 ptr_ = data;
                 length_ = len;
             }
-
             void set(const char* str) 
             {
                 ptr_ = str;
@@ -96,32 +88,27 @@ namespace internal
                 else
                     length_ = 0;
             }
-
             void set(const void* data, size_t len) 
             {
                 ptr_ = reinterpret_cast<const char*>(data);
                 length_ = len;
             }
-
             char operator[](size_t i) const 
             {
                 assert(0 <= i);
                 assert(i < length_);
                 return ptr_[i];
             }
-
             void remove_prefix(size_t n) 
             {
                 assert(length_ >= n);
                 ptr_ += n;
                 length_ -= n;
             }
-
             void remove_suffix(size_t n) {
                 assert(length_ >= n);
                 length_ -= n;
             }
-
             // returns {-1, 0, 1}
             int compare(StringPiece x) const 
             {
@@ -133,12 +120,10 @@ namespace internal
                 if (length_ > x.length_) return 1;
                 return 0;
             }
-
             string as_string() const 
             {
                 return toString();
             }
-
             // We also define ToString() here, since many other string-like
             // interfaces name the routine that converts to a C++ string
             // "toString", and it's confusing to have the method that does that
@@ -149,7 +134,6 @@ namespace internal
                 if (ptr_ == NULL) return string();
                 return string(data(), static_cast<size_type>(size()));
             }
-
             operator string() const 
             {
                 return toString();
@@ -157,24 +141,20 @@ namespace internal
 
             void CopyToString(string* target) const;
             void AppendToString(string* target) const;
-
             bool starts_with(StringPiece x) const 
             {
                 return (length_ >= x.length_) && (memcmp(ptr_, x.ptr_, static_cast<size_t>(x.length_)) == 0);
             }
-        
             bool ends_with(StringPiece x) const 
             {
                 return ((length_ >= x.length_) && (memcmp(ptr_ + (length_-x.length_), x.ptr_, static_cast<size_t>(x.length_)) == 0));
             }
-
             // Checks whether StringPiece starts with x and if so advances the beginning
             // of it to past the match.  It's basically a shortcut for starts_with
             // followed by remove_prefix.
             bool Consume(StringPiece x);
             // Like above but for the end of the string.
             bool ConsumeFromEnd(StringPiece x);
-
             // standard STL container boilerplate
             typedef char value_type;
             typedef const char* pointer;
@@ -198,16 +178,12 @@ namespace internal
             }
             size_t max_size() const { return length_; }
             size_t capacity() const { return length_; }
-
             size_t copy(char* buf, size_type n, size_type pos = 0) const;  // NOLINT
-    
             bool contains(StringPiece s) const;
-
             size_t find(StringPiece s, size_type pos = 0) const;
             size_t find(char c, size_type pos = 0) const;
             size_t rfind(StringPiece s, size_type pos = npos) const;
             size_t rfind(char c, size_type pos = npos) const;
-
             size_t find_first_of(StringPiece s, size_type pos = 0) const;
             size_t find_first_of(char c, size_type pos = 0) const 
             {
