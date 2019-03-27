@@ -15,7 +15,7 @@ using namespace muduo;
 
 int main()
 {
-    static ThreadPool tp("ThreadPool", 10, 5);
+    static ThreadPool tp("ThreadPool", 10, 3);
     tp.setThreadInitCallback(&callback);
     tp.start();
 

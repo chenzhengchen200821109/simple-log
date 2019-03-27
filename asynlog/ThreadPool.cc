@@ -3,7 +3,8 @@
 #include <stdio.h>
 #include <algorithm>
 #include <functional>
-//#include <stdio.h>
+#include "Exception.h"
+#include <stdio.h>
 
 using namespace muduo;
 using namespace std::placeholders;
@@ -56,7 +57,7 @@ void ThreadPool::execute(const Task& task)
         notFull_.wait();
     }
     queue_.push_back(task);
-    //printf("put a value\n");
+    printf("put a value\n");
     notEmpty_.notify();
 }
 
@@ -87,7 +88,7 @@ ThreadPool::Task ThreadPool::timeTake(double sec)
     if (!queue_.empty()) {
         task = queue_.front();
         queue_.pop_front();
-        //printf("take a task");
+        printf("take a task");
         notFull_.notify();
     }
     return task;
@@ -99,7 +100,9 @@ void ThreadPool::runInThread()
         while (1) {
             mutex_.lock();
             Task task;
-            task = timeTake(2);
+            // wait for a task at most 2 seconds otherwise we
+            // assume that no more tasks.
+            task = timeTake(2); 
             if (task) {
                 task();
             }
@@ -110,12 +113,12 @@ void ThreadPool::runInThread()
             mutex_.unlock();
         }
     }
-    //catch (const Exception& ex) {
-    //    fprintf(stderr, "exception caught in ThreadPool %s\n", name_.c_str());
-    //    fprintf(stderr, "reason: %s\n", ex.what());
-    //    fprintf(stderr, "stack trace: %s\n", ex.stackTrace());
-    //    abort();
-    //}
+    catch (const Exception& ex) {
+        fprintf(stderr, "exception caught in ThreadPool %s\n", name_.c_str());
+        fprintf(stderr, "reason: %s\n", ex.what());
+        fprintf(stderr, "stack trace: %s\n", ex.stackTrace());
+        abort();
+    }
     catch (const std::exception& ex) {
         fprintf(stderr, "exception caught in ThreadPool %s\n", name_.c_str());
         fprintf(stderr, "reason: %s\n", ex.what());

@@ -6,5 +6,7 @@ thread_test:
 	g++ -g -std=c++11 Thread_test.cc Thread.cc Exception.cc CountDownLatch.cc -lpthread
 blockqueue_test:
 	g++ -g -std=c++11 BoundedBlockingQueue_test.cc Thread.cc Exception.cc CountDownLatch.cc -lpthread
+threadpool_test:
+	g++ -g -std=c++11 ThreadPool_test.cc ThreadPool.cc Thread.cc CountDownLatch.cc Exception.cc Condition.cc -lpthread
 clean:
 	rm -rf a.out
