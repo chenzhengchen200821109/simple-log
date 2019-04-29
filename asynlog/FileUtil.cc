@@ -1,6 +1,5 @@
 #include "FileUtil.h"
 //#include "Logging.h"
-
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -56,6 +55,7 @@ size_t FileUtil::AppendFile::write(const char* logline, size_t len)
   												  // except it is not thread-safe
 }
 
+/* open a file */
 FileUtil::ReadSmallFile::ReadSmallFile(StringArg filename) : fd_(::open(filename.c_str(), O_RDONLY | O_CLOEXEC)), err_(0)
 {
     buf_[0] = '\0';
@@ -64,6 +64,7 @@ FileUtil::ReadSmallFile::ReadSmallFile(StringArg filename) : fd_(::open(filename
     }
 }
 
+/* close the file */
 FileUtil::ReadSmallFile::~ReadSmallFile()
 {
     if (fd_ >= 0) {
@@ -121,11 +122,12 @@ int FileUtil::ReadSmallFile::readToString(int maxSize, String* content, int64_t*
 }
 
 // read from a file and write to the internal buffer
+// file size must be smaller than 64KB
 int FileUtil::ReadSmallFile::readToBuffer(int* size)
 {
     int err = err_;
     if (fd_ >= 0) {
-        ssize_t n = ::pread(fd_, buf_, sizeof(buf_)-1, 0); // pread() performs the same function
+        ssize_t n = ::pread(fd_, buf_, sizeof(buf_) - 1, 0); // pread() performs the same function
         if (n >= 0) {									   // position in the file without modifying
             if (size) {
                 *size = static_cast<int>(n);
